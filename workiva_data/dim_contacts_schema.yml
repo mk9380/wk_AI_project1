@@ -1,0 +1,172 @@
+version: 2
+
+models:
+  - name: dim_contacts
+    description: |
+      A Type 2 Slowly Changing Dimension (SCD) model representing the historical state of Salesforce Contacts - joined with 
+      'sf_deletes' to track deletions. This model provides contact details, IDs, and versioning
+      The table grain is one record per contact per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - contact_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: contact_id
+        description: "The Salesforce ID that uniquely identifies the contact (remains constant across all versions)."
+        data_type: string
+        tests:
+          - not_null
+      # Contact Attributes
+      - name: contact_email
+        description: "The contact's email address."
+        data_type: string
+
+      - name: contact_title
+        description: "The contact's job title."
+        data_type: string
+
+      - name: contact_department
+        description: "The contact's department."
+        data_type: string
+
+      - name: contact_import_list
+        description: "The list from which the contact was imported."
+        data_type: string
+
+      - name: contact_original_source_info
+        description: "Additional information about the contact's original source."
+        data_type: string
+
+      - name: contact_original_source_type
+        description: "The type of the contact's original source (e.g., system, manual)."
+        data_type: string
+        
+      - name: contact_first_name
+        description: "The contact's first name."
+        data_type: string
+
+      - name: contact_last_name
+        description: "The contact's last name."
+        data_type: string
+
+      - name: contact_full_name
+        description: "The contact's full name."
+        data_type: string
+
+      - name: contact_status
+        description: "The current status of the contact (e.g., Qualified, Prospect)."
+        data_type: string
+
+      - name: contact_account_owner_full_name
+        description: "The full name of the contact's account owner."
+        data_type: string
+
+      - name: contact_owner_name
+        description: "The name of the contact's record owner."
+        data_type: string
+
+      - name: contact_created_by_name
+        description: "The name of the user who created the contact record."
+        data_type: string
+
+      - name: contact_created_by_role
+        description: "The role of the user who created the contact record."
+        data_type: string
+
+      - name: contact_data_status
+        description: "The status of the contact's data quality."
+        data_type: string
+
+      - name: contact_lead_source
+        description: "The source that generated the lead."
+        data_type: string
+      
+      - name: contact_lead_source_condensed
+        description: "An aggregated version of the 'contact_lead_source' field. It categorizes the original lead source into a few key buckets for easier reporting and analysis."
+        data_type: string
+
+      - name: contact_first_touch_offer
+        description: "The first offer the contact interacted with."
+        data_type: string
+
+      - name: contact_management_level
+        description: "The contact's management level (e.g., VP, Director)."
+        data_type: string
+
+      - name: contact_job_function
+        description: "The contact's job function (e.g., Marketing, Sales)."
+        data_type: string
+
+      - name: contact_first_touch_channel
+        description: "The channel of the contact's first interaction."
+        data_type: string
+
+      # Date and Time Attributes
+      - name: contact_created_at
+        description: "Timestamp when the contact record was created."
+        data_type: timestamp
+
+      - name: contact_qualified_at
+        description: "Date when the contact was qualified."
+        data_type: timestamp
+        
+      # IDs
+      - name: account_id
+        description: "The unique identifier for the associated account."
+        data_type: string
+
+      - name: contact_created_by_user_id
+        description: "The user ID of the user who created the contact record."
+        data_type: string
+
+      - name: marketo_person_id
+        description: "The Marketo Person ID for the contact."
+        data_type: string
+
+      - name: account_owner_user_id
+        description: "The user ID of the contact's account owner."
+        data_type: string
+
+      - name: contact_owner_user_id
+        description: "The user ID of the contact's record owner."
+        data_type: string
+
+      - name: contact_master_record_id
+        description: "The ID of the master record, if the contact is a duplicate."
+        data_type: string
+
+      # Flags
+      - name: is_current_customer
+        description: "Boolean flag indicating if the contact is associated with a current customer."
+        data_type: boolean
+
+      # Deletion information
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      # Record Version Attributes
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean

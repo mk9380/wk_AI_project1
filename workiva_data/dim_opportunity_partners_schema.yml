@@ -1,0 +1,343 @@
+version: 2
+
+models:
+  - name: dim_opportunity_partners
+    description: |
+      A Slowly Changing Dimension (SCD) Type 2 table containing opportunities and their related partners.
+      This includes data from the partner relationship salesforce object and historical partners, which were part of the opportunity object itself.
+      The table grain is one record per opportunity per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - opportunity_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+        tests:
+          - not_null
+
+      - name: partner_1_account_id
+        description: Account ID of the first partner.
+        data_type: string
+
+      - name: partner_1_relationship
+        description: The relationship the first partner has with the opportunity.
+        data_type: string
+
+      - name: partner_1_type
+        description: The type of the first partner.
+        data_type: string
+
+      - name: partner_1_account_name
+        description: The account name of the first partner.
+        data_type: string
+      
+      - name: partner_1_account_region
+        description: The account region of the first partner.
+        data_type: string
+
+      - name: partner_1_ultimate_parent_account_id
+        description: The ultimate parent account ID of the first partner's account.
+        data_type: string
+
+      - name: partner_1_geographic_tag
+        description: The partner geographic tag of the first partner's account.
+        data_type: string
+
+      - name: partner_1_status
+        description: The status of the first partner
+        data_type: string
+
+      - name: partner_1_added_stage
+        description: The opportunity stage at which the first partner was added.
+        data_type: string
+      
+      - name: partner_2_account_id
+        description: "Account ID of the second partner."
+        data_type: string
+
+      - name: partner_2_account_name
+        description: "The account name of the second partner."
+        data_type: string
+
+      - name: partner_2_relationship
+        description: "The relationship the second partner has with the opportunity."
+        data_type: string
+
+      - name: partner_2_type
+        description: "The type of the second partner."
+        data_type: string
+
+      - name: partner_2_account_region
+        description: "The account region of the second partner."
+        data_type: string
+
+      - name: partner_2_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the second partner's account."
+        data_type: string
+
+      - name: partner_2_geographic_tag
+        description: "The partner geographic tag of the second partner's account."
+        data_type: string
+
+      - name: partner_2_status
+        description: The status of the second partner
+        data_type: string
+
+      - name: partner_2_added_stage
+        description: The opportunity stage at which the second partner was added.
+        data_type: string
+      
+      - name: partner_3_account_id
+        description: "Account ID of the third partner."
+        data_type: string
+
+      - name: partner_3_account_name
+        description: "The account name of the third partner."
+        data_type: string
+
+      - name: partner_3_relationship
+        description: "The relationship the third partner has with the opportunity."
+        data_type: string
+
+      - name: partner_3_type
+        description: "The type of the third partner."
+        data_type: string
+
+      - name: partner_3_account_region
+        description: "The account region of the third partner."
+        data_type: string
+
+      - name: partner_3_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the third partner's account."
+        data_type: string
+
+      - name: partner_3_geographic_tag
+        description: "The partner geographic tag of the third partner's account."
+        data_type: string
+
+      - name: partner_3_status
+        description: The status of the third partner
+        data_type: string
+
+      - name: partner_3_added_stage
+        description: The opportunity stage at which the third partner was added.
+        data_type: string
+
+      - name: partner_4_account_id
+        description: "Account ID of the fourth partner."
+        data_type: string
+
+      - name: partner_4_account_name
+        description: "The account name of the fourth partner."
+        data_type: string
+
+      - name: partner_4_relationship
+        description: "The relationship the fourth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_4_type
+        description: "The type of the fourth partner."
+        data_type: string
+
+      - name: partner_4_account_region
+        description: "The account region of the fourth partner."
+        data_type: string
+
+      - name: partner_4_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the fourth partner's account."
+        data_type: string
+
+      - name: partner_4_geographic_tag
+        description: "The partner geographic tag of the fourth partner's account."
+        data_type: string
+      
+      - name: partner_4_status
+        description: The status of the fourth partner
+        data_type: string
+
+      - name: partner_4_added_stage
+        description: The opportunity stage at which the fourth partner was added.
+        data_type: string
+      
+      - name: partner_5_account_id
+        description: "Account ID of the fifth partner."
+        data_type: string
+
+      - name: partner_5_account_name
+        description: "The account name of the fifth partner."
+        data_type: string
+
+      - name: partner_5_relationship
+        description: "The relationship the fifth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_5_type
+        description: "The type of the fifth partner."
+        data_type: string
+
+      - name: partner_5_account_region
+        description: "The account region of the fifth partner."
+        data_type: string
+
+      - name: partner_5_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the fifth partner's account."
+        data_type: string
+
+      - name: partner_5_geographic_tag
+        description: "The partner geographic tag of the fifth partner's account."
+        data_type: string
+
+      - name: partner_5_status
+        description: The status of the fifth partner
+        data_type: string
+
+      - name: partner_5_added_stage
+        description: The opportunity stage at which the fifth partner was added.
+        data_type: stringv
+      
+      - name: partner_6_account_id
+        description: "Account ID of the sixth partner."
+        data_type: string
+
+      - name: partner_6_account_name
+        description: "The account name of the sixth partner."
+        data_type: string
+
+      - name: partner_6_relationship
+        description: "The relationship the sixth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_6_type
+        description: "The type of the sixth partner."
+        data_type: string
+
+      - name: partner_6_account_region
+        description: "The account region of the sixth partner."
+        data_type: string
+
+      - name: partner_6_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the sixth partner's account."
+        data_type: string
+
+      - name: partner_6_geographic_tag
+        description: "The partner geographic tag of the sixth partner's account."
+        data_type: string
+
+      - name: partner_6_status
+        description: The status of the sixth partner
+        data_type: string
+
+      - name: partner_6_added_stage
+        description: The opportunity stage at which the sixth partner was added.
+        data_type: string
+
+      - name: partner_7_account_id
+        description: "Account ID of the seventh partner."
+        data_type: string
+
+      - name: partner_7_account_name
+        description: "The account name of the seventh partner."
+        data_type: string
+
+      - name: partner_7_relationship
+        description: "The relationship the seventh partner has with the opportunity."
+        data_type: string
+
+      - name: partner_7_type
+        description: "The type of the seventh partner."
+        data_type: string
+
+      - name: partner_7_account_region
+        description: "The account region of the seventh partner."
+        data_type: string
+
+      - name: partner_7_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the seventh partner's account."
+        data_type: string
+
+      - name: partner_7_geographic_tag
+        description: "The partner geographic tag of the seventh partner's account."
+        data_type: string
+
+      - name: partner_7_status
+        description: The status of the seventh partner
+        data_type: string
+
+      - name: partner_7_added_stage
+        description: The opportunity stage at which the seventh partner was added.
+        data_type: string
+
+      - name: partner_8_account_id
+        description: "Account ID of the eighth partner."
+        data_type: string
+
+      - name: partner_8_account_name
+        description: "The account name of the eighth partner."
+        data_type: string
+
+      - name: partner_8_relationship
+        description: "The relationship the eighth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_8_type
+        description: "The type of the eighth partner."
+        data_type: string
+
+      - name: partner_8_account_region
+        description: "The account region of the eighth partner."
+        data_type: string
+
+      - name: partner_8_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the eighth partner's account."
+        data_type: string
+
+      - name: partner_8_geographic_tag
+        description: "The partner geographic tag of the eighth partner's account."
+        data_type: string
+
+      - name: partner_8_status
+        description: The status of the eighth partner
+        data_type: string
+
+      - name: partner_8_added_stage
+        description: The opportunity stage at which the eighth partner was added.
+        data_type: string
+      
+      - name: partner_delivering_services
+        description: ""
+        data_type: string
+      
+      - name: partnership_notes
+        description: "Notes related to the partnership for the opportunity."
+        data_type: string
+
+      - name: opportunity_type
+        description: "{{ doc('col_opportunity_type') }}"
+        data_type: string
+
+      - name: opportunity_partner_relationship
+        description: "The dominant partner relationship type for the entire opportunity based on the partner relationship hierarchy. Sourced > Direct > Co-Sell > RFP"
+        data_type: string
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+          
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+              
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean

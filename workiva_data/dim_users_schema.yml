@@ -1,0 +1,83 @@
+version: 2
+
+models:
+  - name: dim_users
+    description: |
+      A Slowly Changing Dimension (SCD) Type 2 table containing the full history of user profiles from the Workiva Salesforce instance. 
+      The table grain is one record per user per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - user_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: user_id
+        description: "The Salesforce ID that uniquely identifies the user (remains constant across all versions)."
+        data_type: string
+        tests:
+          - not_null
+          
+      - name: user_name
+        description: "The user's full name."
+        data_type: string
+
+      - name: user_username
+        data_type: string
+        description: "The user's login username."
+
+      - name: user_email
+        description: "The user's email address."
+        data_type: string
+
+      - name: user_department
+        description: "The department the user belongs to."
+        data_type: string
+
+      - name: user_division
+        description: "The division the user belongs to."
+        data_type: string
+
+      - name: user_role
+        description: "The user's role."
+        data_type: string
+
+      - name: manager_user_id
+        description: "The user_id of the user's direct manager."
+        data_type: string
+        
+      - name: user_role_id
+        description: "The ID for the user's role."
+        data_type: string
+
+      - name: user_profile_id
+        description: "The user's profile ID."
+        data_type: string
+      
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+          
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+              
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean
+              

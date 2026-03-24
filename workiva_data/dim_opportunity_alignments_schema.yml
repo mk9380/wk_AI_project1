@@ -1,0 +1,82 @@
+version: 2
+
+models:
+  - name: dim_opportunity_alignments
+    description: |
+      A Type 2 Slowly Changing Dimension (SCD) table. This table joins Opportunity and Account historical data 
+      and aligns the resulting records to the appropriate segment, team, region and sub-region based on 
+      the latest role alignment information (latest information per owner_role).
+      The table grain is one record per opportunity per historical version
+      Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - opportunity_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+        
+    columns:
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+        tests:
+          - not_null
+
+      - name: is_account_alignment
+        description: "{{ doc('col_is_account_alignment') }}"
+        data_type: boolean
+
+      - name: opportunity_market_segment
+        description: "{{ doc('col_opportunity_market_segment') }}"
+        data_type: string
+
+      - name: opportunity_team
+        description: "{{ doc('col_opportunity_team') }}"
+        data_type: string
+
+      - name: opportunity_owner_region
+        description: "{{ doc('col_opportunity_owner_region') }}"
+        data_type: string
+
+      - name: opportunity_owner_sub_region
+        description: "{{ doc('col_opportunity_owner_sub_region') }}"
+        data_type: string
+
+      - name: public_type
+        description: "{{ doc('col_public_type') }}"
+        data_type: string
+
+      - name: is_public_type
+        description: "{{ doc('col_is_public_type') }}"
+        data_type: boolean
+
+      - name: opportunity_alignment_sub_category
+        description: "{{ doc('col_opportunity_alignment_sub_category') }}"
+        data_type: string
+
+      - name: opportunity_alignment_category
+        description: "{{ doc('col_opportunity_alignment_category') }}"
+        data_type: string
+
+      - name: opportunity_alignment_region
+        description: "{{ doc('col_opportunity_alignment_region') }}"
+        data_type: string
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean

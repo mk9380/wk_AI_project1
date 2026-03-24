@@ -1,0 +1,114 @@
+version: 2
+
+models:
+  - name: fct_bookings
+    description: >
+      A transactional fact table capturing confirmed bookings (Closed Won, etc.).
+      The grain is one row per unique combination of Opportunity ID and Solution Total ID on the booking or closed date.
+      This model uses Slowly Changing Dimension (SCD) logic to ensure all linked dimension attributes and monetary values are historically accurate to the booking date.
+      Data Logic & Filters:
+      Date Filter: Only includes records where the booking_or_closed_date is >= '2000-01-01'.
+      Opportunity Stages: Closed Won, Closed - Pending, Closed Lost, Closed No Decision, Closed Lost/No Decision, Closed - Churn.
+      Exclusions (Record Type): Excludes opportunity history records with types: 'Outbound Referral', 'Credit Amendment'.
+      Exclusions (Solution Category): Excludes solution totals where the solution_category is: 'Event Registration', 'Generative AI'.
+      Exclusions (Account): Excludes opportunities tied to internal or test accounts.
+      Exclusions (Contract): Excludes any opportunity linked to a 'Never Started' contract.
+      Exclusions (XBRL): Excludes opportunities where the is_xbrl_owned macro returns TRUE.
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: booking_key
+        data_type: string
+        description: "The unique surrogate key for the booking record, generated on `opportunity_id` and `solution_total_id`. This ID represents the primary key."
+        tests:
+          - unique
+          - not_null
+
+      - name: opportunity_id
+        data_type: string
+        description: "{{ doc('col_opportunity_id') }}"
+        tests:
+          - not_null
+
+      - name: solution_total_id
+        data_type: string
+        description: "{{ doc('col_solution_total_id') }}"
+        tests:
+          - not_null
+
+      - name: customer_account_id
+        data_type: string
+        description: "The ID of the customer account (end client or primary account)."
+
+      - name: opportunity_created_by_user_id
+        data_type: string
+        description: "The ID of the user who created the opportunity."
+
+      - name: opportunity_owner_user_id
+        data_type: string
+        description: "The ID of the user who owns the opportunity."
+
+      - name: first_associated_contact_id
+        data_type: string
+        description: "The ID of the first contact associated with the opportunity."
+
+      - name: first_contract_id
+        data_type: string
+        description: "The ID of the first contract associated with the opportunity."
+
+      - name: opportunity_solution_classification_key
+        data_type: string
+        description: "A unique surrogate key for each opportunity/solution classification, generated from the opportunity ID and solution total ID."
+
+      - name: currency_iso_code
+        data_type: string
+        description: "The currency code of the solution total."
+
+      - name: first_year_s_s_net_amt_usd
+        data_type: decimal
+        description: "The net amount of the first year's subscription and support, converted to **USD** using the daily conversion rate on the `booking_or_closed_date`."
+
+      - name: booking_or_closed_date
+        data_type: timestamp
+        description: "The date the booking was recorded (coalesced from bookings_date or closed_date)."
+
+      - name: solution_total_name
+        data_type: string
+        description: "The name of the solution total."
+
+      - name: opportunity_line_type
+        data_type: string
+        description: "The type of the opportunity line item."
+
+      - name: delivery_partner
+        data_type: string
+        description: "The partner involved in the delivery."
+
+      - name: delivery_type
+        data_type: string
+        description: "The type of delivery (e.g., 'Internal', 'External')."
+
+      - name: is_diy_delivery
+        data_type: boolean
+        description: "Flag indicating if the solution total delivery is a DIY (Do-It-Yourself) type."
+
+      - name: large_deal_category
+        data_type: string
+        description: |
+          Categorizes the opportunity based on its total consolidated first_year_s_s_net_amt_usd. 
+          This is calculated at the opportunity level, representing the aggregate value of the deal 
+          rather than individual solution totals.
+      
+      - name: is_closed_won
+        description: "A boolean flag indicating if the opportunity is in a closed won stage."
+        data_type: boolean
+
+      - name: is_closed_pending
+        description: "A boolean flag indicating if the opportunity is in a closed pending stage."
+        data_type: boolean
+
+      - name: is_closed_lost
+        description: "A boolean flag indicating if the opportunity is in a closed lost stage."
+        data_type: boolean

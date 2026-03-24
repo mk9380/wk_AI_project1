@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: dim_opportunity_line_item_summary
+    description: |
+      SCD Type 2 model. The grain of this model is one record per opportunity_id and version_start_at. 
+      Individual line items are aggregated and summarized at this level to provide a snapshot of 
+      all line items active during specific time intervals.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - opportunity_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+        tests:
+          - not_null
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean
+
+      - name: opportunity_products
+        description: "{{ doc('col_opportunity_products') }}"
+        data_type: string
+
+      - name: opportunity_subscription_products
+        description: "{{ doc('col_opportunity_subscription_products') }}"
+        data_type: string
+
+      - name: opportunity_capital_markets_products
+        description: "{{ doc('col_opportunity_capital_markets_products') }}"
+        data_type: string
+
+      - name: opportunity_partner_delivery_type
+        description: "{{ doc('col_opportunity_partner_delivery_type') }}"
+        data_type: string

@@ -1,0 +1,223 @@
+version: 2
+
+models:
+  - name: dim_solutions
+    description: |
+      A Type 2 Slowly Changing Dimension (SCD) model representing the historical state of Salesforce Solutions.
+      The table grain is one record per solution per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - solution_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+
+      - name: solution_id
+        description: "The unique identifier for the specific solution record."
+        data_type: string
+        tests:
+          - not_null
+
+      - name: solution_name
+        description: "The name of the solution."
+        data_type: string
+
+      - name: solution_picklist
+        description: "The specific solution selected from a picklist."
+        data_type: string
+
+      - name: sku_grouping
+        description: "The SKU grouping associated with the solution."
+        data_type: string
+
+      - name: solution_category
+        description: "The category classification for the solution."
+        data_type: string
+
+      - name: solution_group_original
+        description: "The original solution group in the source system."
+        data_type: string
+
+      - name: booking_category_original
+        description: "The original booking category in the source system."
+        data_type: string
+
+      - name: solution_group
+        description: "The solution group after applying remapping logic."
+        data_type: string
+
+      - name: booking_category
+        description: "The booking category after applying remapping logic."
+        data_type: string
+
+      - name: customer_success_status
+        description: "The customer success status listed in the solution (i.e., 'Customer', 'Pending', etc.)"
+        data_type: string
+
+      - name: customer_status
+        description: "The customer status listed in the solution (i.e., 'Contract Pending', 'Basic Maintenance', etc.)"
+        data_type: string
+
+      - name: solution_status
+        description: "The status of the solution record (i.e., 'Churned', 'Customer', 'Non-Customer', etc.)"
+        data_type: string
+
+      - name: customer_type
+        description: "The customer type listed in the solution (i.e., 'Original WB Setup, 'Spreadsheets Setup', etc.)"
+        data_type: string
+
+      - name: solution_health_score
+        description: "The health score listed in the solution (i.e., 'Green', 'Yellow', etc.)."
+        data_type: string
+
+      - name: support_package
+        description: "The support package associated with the solution (i.e., 'Premium', 'Unlimited', etc.)"
+        data_type: string
+
+      - name: migration_status
+        description: "The migration status for the solution (i.e., 'Transition Complete', 'Onboarded into Next Gen', etc.)"
+        data_type: string
+
+      - name: churn_reason
+        description: "The churn reason listed in the solution (i.e., 'Delinquent / Non-Payment', 'Company Change', etc.)"
+        data_type: string
+
+      - name: stage_name
+        description: "The lifecycle stage of the solution (i.e., 'Value Realized', 'Onboarding', etc.)"
+        data_type: string
+
+      - name: onboarding_status
+        description: "The status of the onboarding (i.e., 'Onboarded', 'In Progress', etc.)"
+        data_type: string
+
+      - name: days_in_onboarding
+        description: "Number of days the solution record remained in the onboarding phase."
+        data_type: integer
+
+      - name: created_timestamp
+        description: "The timestamp when the solution record was originally created."
+        data_type: timestamp
+
+      - name: projected_onboarded_date
+        description: "The projected onboarding date."
+        data_type: date
+
+      - name: actual_onboarded_date
+        description: "The date the solution was actually onboarded."
+        data_type: date
+
+      - name: actual_or_projected_onboard_date
+        description: "The actual or projected onboarding date, prioritizing actual date over projected date."
+        data_type: date
+
+      - name: kickoff_call_completed_date
+        description: "The date the kickoff call was completed."
+        data_type: date
+
+      - name: churned_marked_date
+        description: "The solution churned date as listed in the source system."
+        data_type: date
+
+      - name: at_risk_date
+        description: "The date the solution is identified as being at risk."
+        data_type: date
+
+      - name: account_id
+        description: "The unique identifier for the Salesforce Account associated with the solution."
+        data_type: string
+
+      - name: partner_id
+        description: "ID of the partner account associated with the solution."
+        data_type: string
+
+      - name: csm_user_id
+        description: "CSM Salesforce user ID."
+        data_type: string
+
+      - name: additional_csm_user_id
+        description: "Additional CSM Salesforce user ID."
+        data_type: string
+
+      - name: enterprise_us_csm_user_id
+        description: "Enterprise CSM US Salesforce user ID."
+        data_type: string
+
+      - name: csm_team_manager_user_id
+        description: "CSM Team Manager Salesforce user ID."
+        data_type: string
+
+      - name: sr_csm_user_id
+        description: "Senior CSM Salesforce user ID."
+        data_type: string
+
+      - name: psm_user_id
+        description: "PSM Salesforce user ID."
+        data_type: string
+
+      - name: sr_psm_user_id
+        description: "Senior PSM Salesforce user ID."
+        data_type: string
+
+      - name: psm_team_manager_user_id
+        description: "PSM Team Manager Salesforce user ID."
+        data_type: string
+
+      - name: director_cs_user_id
+        description: "CS Director Salesforce user ID."
+        data_type: string
+
+      - name: senior_director_cs_user_id
+        description: "CS Senior Director Salesforce user ID."
+        data_type: string
+
+      - name: product_success_manager_user_id
+        description: "Product Success Manager Salesforce user ID."
+        data_type: string
+
+      - name: last_modified_by_user_id
+        description: "The ID for the Salesforce user who last modified this record."
+        data_type: string
+
+      - name: created_by_user_id
+        description: "The ID for the Salesforce user who created this record."
+        data_type: string
+
+      - name: solution_record_type_id
+        description: "The Salesforce Record Type ID associated with the solution."
+        data_type: string
+
+      - name: solution_record_type_name
+        description: "The human readable name of the Salesforce Record Type."
+        data_type: string
+
+      - name: is_churned
+        description: "Flag indicating if the solution is churned."
+        data_type: boolean
+
+      - name: is_at_risk
+        description: "Flag indicating if the solution is identified as being at risk."
+        data_type: boolean
+
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean

@@ -1,0 +1,218 @@
+version: 2
+
+models:
+  - name: fct_pipeline
+    description: |
+      A daily snapshot model capturing the sales pipeline as it existed at the end of each day (23:59:59). This model is the primary source for pipeline analysis.
+      Opportunities in open stages are snapshot historically (daily). 
+      Information of opportunities in closed stages is captured on the date the opportunity entered a closed stage (e.g., Closed Won), and on the current date.
+      Exclusions: Opportunities with negative first-year subscriptions and support amount; opportunities associated with internal or test accounts;
+      opportunities of types: 'Price Increase', 'Renewal', and 'Outbound Referral'; oppportunities linked to the 'Event Registration' solution category;
+      opportunities with record type 'Price Increase', and 'Outbound Referral'.
+
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: pipeline_key
+        description: "A unique surrogate key for each pipeline snapshot, generated from the snapshot date, opportunity ID, and solution total ID. This ID represents the primary key."
+        tests:
+          - unique
+          - not_null
+
+      - name: snapshot_date
+        description: "The calendar date for which the pipeline snapshot was taken."
+        data_type: date
+        tests:
+          - not_null
+      
+      - name: snapshot_end_of_day_timestamp
+        description: "The `snapshot_date` end of day timestamp."
+        data_type: timestamp
+      
+      - name: snapshot_year_quarter
+        description: "The year and quarter corresponding to the `snapshot_date` (e.g., 'FY25 Q1')."
+        data_type: string
+
+      - name: is_current_day_snapshot
+        description: "A boolean flag indicating if the `snapshot_date` is the current calendar day."
+        data_type: boolean
+
+      - name: is_first_day_of_month_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the first day of its respective month."
+        data_type: boolean
+
+      - name: is_first_day_of_quarter_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the first day of its respective quarter."
+        data_type: boolean
+
+      - name: is_fifth_business_day_of_month_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the fifth business day of its respective month."
+        data_type: boolean
+
+      - name: is_fifth_business_day_of_quarter_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the fifth business day of its respective quarter."
+        data_type: boolean
+
+      - name: is_one_year_ago_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is exactly one year prior to the current day."
+        data_type: boolean
+      
+      - name: is_two_years_ago_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is exactly two years prior to the current day."
+        data_type: boolean
+
+      - name: is_three_years_ago_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is exactly three years prior to the current day."
+        data_type: boolean
+
+      - name: is_quarterly_snapshot
+        description: "A flag to identify key dates for quarterly pipeline reporting (fifth business day of quarter or current day, excluding future dates within the current quarter)."
+        data_type: boolean
+
+      - name: is_monthly_snapshot
+        description: "A flag to identify key dates for monthly pipeline reporting (fifth business day of month or current day, excluding future dates within the current month)."
+        data_type: boolean
+      
+      - name: is_closed_opp_snapshot_at_closed_date
+        description: "A flag indicating if this snapshot row represents the opportunity at the moment it transitioned into a closed stage. This is the primary record for 'point-in-time' closure analysis."
+        data_type: boolean
+
+      - name: is_closed_opp_snapshot_latest
+        description: "A flag indicating if this snapshot row represents a closed opportunity as it currently exist."
+        data_type: boolean
+
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+        tests:
+          - not_null
+
+      - name: solution_total_id
+        description: "Unique identifier for the Solution Total record. For estimated pipeline (without a Solution Total), this is a synthetic ID (`NST_[Opportunity_ID]_[Counter]`)."
+        data_type: string
+        tests:
+          - not_null
+
+      - name: customer_account_id
+        description: "{{ doc('col_customer_account_id') }}"
+        data_type: string
+
+      - name: opportunity_created_by_user_id
+        description: "{{ doc('col_opportunity_created_by_user_id') }}"
+        data_type: string
+
+      - name: opportunity_owner_user_id
+        description: "{{ doc('col_opportunity_owner_user_id') }}"
+        data_type: string
+
+      - name: first_associated_contact_id
+        description: "The contact ID of the first associated contact on the Opportunity."
+        data_type: string
+      
+      - name: opportunity_solution_classification_key
+        description: "A unique surrogate key for each opportunity/solution classification, generated from the opportunity ID and solution total ID."
+
+      - name: is_opportunity_with_solution_total
+        description: "A boolean flag indicating if the pipeline amount was derived from an actual Solution Total record (TRUE) or an estimated value from the Opportunity (FALSE)."
+        data_type: boolean
+
+      - name: currency_iso_code
+        description: "The currency ISO code (e.g., 'USD', 'EUR') associated with the solution total (for opportunities with solution total) or with the opportunity (for opportunities w/o solution total)."
+        data_type: string
+      
+      - name: opportunity_stage_name
+        description: "{{ doc('col_opportunity_stage_name') }}"
+        data_type: string
+      
+      - name: opportunity_closed_date
+        description: "{{ doc('col_opportunity_closed_date') }}"
+        data_type: date
+      
+      - name: large_deal_category
+        data_type: string
+        description: |
+          Categorizes the opportunity based on its total consolidated first_year_s_s_net_amt_usd. 
+          This is calculated at the opportunity level, representing the aggregate value of the deal 
+          rather than individual solution totals.
+
+      - name: qualified_first_year_s_s_net_amt_usd
+        description: "The estimated First Year Subscription & Support (S&S) Net Amount, converted to USD, for opportunities in a qualified stage ('Discovery', 'Alignment', 'Validate', 'Propose', 'Negotiate and Close', 'Define Solution', etc)."
+        data_type: decimal
+
+      - name: unqualified_first_year_s_s_net_amt_usd
+        description: "The estimated First Year S&S Net Amount, converted to USD, for opportunities in an unqualified stage ('Unqualified')."
+        data_type: decimal
+
+      - name: total_first_year_s_s_net_amt_usd
+        description: "The estimated First Year S&S Net Amount, converted to USD, representing the total pipeline (qualified + unqualified stages)."
+        data_type: decimal
+        tests:
+          - z_score_outlier:
+              date_column: snapshot_date
+              lookback_days: 45
+              threshold: 3
+              where: "is_open = True"
+        
+      - name: is_open
+        description: "A boolean flag indicating if the opportunity is in an open stage at the corresponding snapshot_date."
+        data_type: boolean
+      
+      - name: is_closed_won
+        description: "A boolean flag indicating if the opportunity is in a closed won stage at the corresponding snapshot_date."
+        data_type: boolean
+      
+      - name: is_closed_pending
+        description: "A boolean flag indicating if the opportunity is in a closed pending stage at the corresponding snapshot_date."
+        data_type: boolean
+      
+      - name: is_closed_lost
+        description: "A boolean flag indicating if the opportunity is in a closed lost stage at the corresponding snapshot_date."
+        data_type: boolean
+
+      - name: is_qualified
+        description: "A boolean flag indicating if the opportunity is in a qualified stage."
+        data_type: boolean
+      
+      - name: is_snapshot_near_closed_date
+        description: "Boolean flag (TRUE/FALSE) indicating if the opportunity's snapshot date falls within 1 year before and 2 years after its closed date."
+        data_type: boolean
+      
+      - name: is_positive_opportunity_s_s_net
+        description: "A boolean flag indicating if the total first_year_s_s_net_amt_usd amount for an opportunity (sum across all solutions) is greater than zero for the given snapshot."
+        data_type: boolean
+      
+      - name: is_quarterly_close_target_snapshot
+        description: |
+          A boolean flag used for standardized quarterly reporting. It identifies the 'official' pipeline state for opportunities closing within the same quarter as the snapshot.
+          Logic breakdown:
+          * Past Quarters: Captures the 5th business day snapshot.
+          * Current Quarter: Captures the earliest available of either the 5th business day or the current day snaphot.
+          * Future Quarters: Captures the most recent snapshot (is_current_day_snapshot).
+        data_type: boolean
+      
+      - name: is_created_on_snapshot
+        description: "Flag indicating if the snapshot date matches the opportunity creation date."
+        data_type: boolean
+      
+      - name: is_metric_created_pipeline
+        description: "Filters for created pipeline to measure pipeline created in a certain period (Filters: is_positive_opportunity_s_s_net = True, is_created_on_snapshot = True)."
+        data_type: boolean
+      
+      - name: is_metric_open_qualified_pipeline
+        description: "Filters for the current open qualified pipeline (Filters: is_positive_opportunity_s_s_net = True, is_current_day_snapshot = True, is_open = True, is_qualified = True)."
+        data_type: boolean
+
+      - name: is_metric_open_total_pipeline
+        description: "Filters for the current open total pipeline (Filters: is_positive_opportunity_s_s_net = True, is_current_day_snapshot = True, is_open = True)."
+        data_type: boolean
+
+      - name: is_metric_start_of_quarter_open_qualified_pipeline
+        description: "Filters for the starting open qualified pipeline for the quarter for opportunities closing within the same quarter (Filters: is_positive_opportunity_s_s_net = True, is_quarterly_close_target_snapshot = True, is_open = True, is_qualified = True)."
+        data_type: boolean
+
+      - name: is_metric_start_of_quarter_open_total_pipeline
+        description: "Filters for the starting open total pipeline for the quarter for opportunities closing within the same quarter (Filters: is_positive_opportunity_s_s_net = True, is_quarterly_close_target_snapshot = True , is_open = True)."
+        data_type: boolean
+      

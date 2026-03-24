@@ -1,0 +1,102 @@
+version: 2
+
+models:
+  - name: dim_partner_relationships
+    description: |
+      A Slowly Changing Dimension (SCD) Type 2 table containing partner relationships.
+      This includes data from the partner relationship salesforce object enriched with additional fields from the partner's account.
+      The table grain is one record per partner relationship per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+      Due to the partnership object being created in 2025, this table has no version_start_at timestamps before 2025.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - partner_relationship_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: partner_relationship_id
+        description: "{{ doc('col_partner_relationship_id') }}"
+        data_type: numeric
+        tests:
+          - not_null
+
+      - name: partner_id
+        description: "{{ doc('col_partner_id') }}"
+        data_type: string
+
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+      
+      - name: partner_relationship_type
+        description: "{{ doc('col_partner_relationship_type') }}"
+        data_type: string
+
+      - name: partner_relationship_opportunity_partner_type
+        description: "{{ doc('col_partner_relationship_opportunity_partner_type') }}"
+        data_type: string
+      
+      - name: partner_relationship_owner_id
+        description: "{{ doc('col_partner_relationship_owner_id') }}"
+        data_type: string
+
+      - name: partner_account_partner_type
+        description: "{{ doc('col_partner_account_partner_type') }}"
+        data_type: string
+
+      - name: partner_name
+        description: "{{ doc('col_partner_name') }}"
+        data_type: string
+
+      - name: partner_ultimate_parent_account_id
+        description: "{{ doc('col_partner_ultimate_parent_account_id') }}"
+        data_type: string
+
+      - name: partner_region
+        description: "{{ doc('col_partner_region') }}"
+        data_type: string
+
+      - name: partner_status
+        description: "{{ doc('col_partner_status') }}"
+        data_type: string
+
+      - name: partner_added_stage
+        description: "{{ doc('col_partner_added_stage') }}"
+        data_type: string
+
+      - name: partner_added_stage_group
+        description: "{{ doc('col_partner_added_stage_group') }}"
+        data_type: string
+
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+        tests:
+          - not_null
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      - name: created_at
+        description: The time at which the partner relationship instance was created. For historic partner relationships from opportunity this timestamp is the time at which the partnership was added to the opportunity instance. 
+        data_type: string
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+          
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean

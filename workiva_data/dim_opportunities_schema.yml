@@ -1,0 +1,250 @@
+version: 2
+
+models:
+  - name: dim_opportunities
+    description: |
+      A Type 2 Slowly Changing Dimension (SCD) model representing the historical state of Salesforce Opportunities.
+      The table grain is one record per opportunity per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - opportunity_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+        tests:
+          - not_null
+
+      - name: opportunity_name
+        description: "{{ doc('col_opportunity_name') }}"
+        data_type: string
+
+      - name: opportunity_stage_name
+        description: "{{ doc('col_opportunity_stage_name') }}"
+        data_type: string
+
+      - name: opportunity_deal_type
+        description: "{{ doc('col_opportunity_deal_type') }}"
+        data_type: string
+
+      - name: opportunity_type
+        description: "{{ doc('col_opportunity_type') }}"
+        data_type: string
+
+      - name: opportunity_reporting_sub_type
+        description: "{{ doc('col_opportunity_reporting_sub_type') }}"
+        data_type: string
+
+      - name: opportunity_currency_iso_code
+        description: "{{ doc('col_opportunity_currency_iso_code') }}"
+        data_type: string
+
+      - name: opportunity_owner_role
+        description: "{{ doc('col_opportunity_owner_role') }}"
+        data_type: string
+
+      - name: opportunity_closing_role
+        description: "{{ doc('col_opportunity_closing_role') }}"
+        data_type: string
+
+      - name: opportunity_lead_source
+        description: "{{ doc('col_opportunity_lead_source') }}"
+        data_type: string
+
+      - name: opportunity_first_associated_contact_lead_source
+        description: "{{ doc('col_opportunity_first_associated_contact_lead_source') }}"
+        data_type: string
+
+      - name: opportunity_origin_source
+        description: "{{ doc('col_opportunity_origin_source') }}"
+        data_type: string
+
+      - name: opportunity_forecast_category_name
+        description: "{{ doc('col_opportunity_forecast_category_name') }}"
+        data_type: string
+
+      - name: solution_category
+        description: "{{ doc('col_solution_category') }}"
+        data_type: string
+
+      - name: opportunity_sales_ops_review_status
+        description: "{{ doc('col_opportunity_sales_ops_review_status') }}"
+        data_type: string
+
+      - name: opportunity_legal_review_status
+        description: "{{ doc('col_opportunity_legal_review_status') }}"
+        data_type: string
+
+      - name: opportunity_accounting_review_status
+        description: "{{ doc('col_opportunity_accounting_review_status') }}"
+        data_type: string
+
+      - name: opportunity_partnership_notes
+        description: "{{ doc('col_opportunity_partnership_notes') }}"
+        data_type: string
+
+      - name: opportunity_service_delivery_notes
+        description: "{{ doc('col_opportunity_service_delivery_notes') }}"
+        data_type: string
+
+      - name: opportunity_competitor
+        description: "{{ doc('col_opportunity_competitor') }}"
+        data_type: string
+
+      - name: opportunity_value_management_engagement
+        description: "{{ doc('col_opportunity_value_management_engagement') }}"
+        data_type: string
+
+      - name: opportunity_closed_reason
+        description: "{{ doc('col_opportunity_closed_reason') }}"
+        data_type: string
+
+      - name: opportunity_closed_notes
+        description: "{{ doc('col_opportunity_closed_notes') }}"
+        data_type: string
+
+      - name: opportunity_created_at
+        description: "{{ doc('col_opportunity_created_at') }}"
+        data_type: timestamp
+      
+      - name: opportunity_created_date
+        description: "{{ doc('col_opportunity_created_date') }}"
+        data_type: date
+      
+      - name: opportunity_created_quarter_date
+        description: "{{ doc('col_opportunity_created_quarter_date') }}"
+        data_type: date
+      
+      - name: opportunity_created_year_quarter
+        description: "{{ doc('col_opportunity_created_year_quarter') }}"
+        data_type: string
+
+      - name: opportunity_closed_date
+        description: "{{ doc('col_opportunity_closed_date') }}"
+        data_type: date
+      
+      - name: opportunity_closed_quarter_date
+        description: "{{ doc('col_opportunity_closed_quarter_date') }}"
+        data_type: date
+      
+      - name: opportunity_closed_year_quarter
+        description: "{{ doc('col_opportunity_closed_year_quarter') }}"
+        data_type: string
+
+      - name: opportunity_bookings_date
+        description: "{{ doc('col_opportunity_bookings_date') }}"
+        data_type: date
+
+      - name: opportunity_booking_or_closed_date
+        description: "{{ doc('col_opportunity_booking_or_closed_date') }}"
+        data_type: date
+
+      - name: opportunity_booking_or_closed_quarter_date
+        description: "{{ doc('col_opportunity_booking_or_closed_quarter_date') }}"
+        data_type: date
+      
+      - name: opportunity_booking_or_closed_year_quarter
+        description: "{{ doc('col_opportunity_booking_or_closed_year_quarter') }}"
+        data_type: string
+
+      - name: opportunity_credited_date
+        description: "{{ doc('col_opportunity_credited_date') }}"
+        data_type: date
+
+      - name: opportunity_qualified_date
+        description: "{{ doc('col_opportunity_qualified_date') }}"
+        data_type: date
+      
+      - name: opportunity_qualified_quarter_date
+        description: "{{ doc('col_opportunity_qualified_quarter_date') }}"
+        data_type: date
+      
+      - name: opportunity_qualified_year_quarter
+        description: "{{ doc('col_opportunity_qualified_year_quarter') }}"
+        data_type: string
+      
+      - name: opportunity_standard_qualified_date
+        description: "{{ doc('col_opportunity_standard_qualified_date') }}"
+        data_type: date
+      
+      - name: opportunity_standard_qualified_quarter_date
+        description: "{{ doc('col_opportunity_standard_qualified_quarter_date') }}"
+        data_type: date
+      
+      - name: opportunity_standard_qualified_year_quarter
+        description: "{{ doc('col_opportunity_standard_qualified_year_quarter') }}"
+        data_type: string
+
+      - name: opportunity_created_by_user_id
+        description: "{{ doc('col_opportunity_created_by_user_id') }}"
+        data_type: string
+
+      - name: opportunity_owner_user_id
+        description: "{{ doc('col_opportunity_owner_user_id') }}"
+        data_type: string
+
+      - name: account_id
+        description: "{{ doc('col_account_id') }}"
+        data_type: string
+
+      - name: end_client_account_id
+        description: "{{ doc('col_end_client_account_id') }}"
+        data_type: string
+
+      - name: customer_account_id
+        description: "{{ doc('col_customer_account_id') }}"
+        data_type: string
+
+      - name: partner_delivering_services_id
+        description: "{{ doc('col_partner_delivering_services_id') }}"
+        data_type: string
+
+      - name: opportunity_record_type_id
+        description: "{{ doc('col_opportunity_record_type_id') }}"
+        data_type: string
+
+      - name: opportunity_record_type_name
+        description: "{{ doc('col_opportunity_record_type_name') }}"
+        data_type: string
+
+      - name: is_deal_registration
+        description: "{{ doc('col_is_deal_registration') }}"
+        data_type: boolean
+      
+      - name: is_alignment_stage_plus
+        description: "{{ doc('col_is_alignment_stage_plus') }}"
+        data_type: boolean
+
+      - name: is_managed_service
+        description: "{{ doc('col_is_managed_service') }}"
+        data_type: string
+      
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean

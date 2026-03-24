@@ -1,0 +1,142 @@
+version: 2
+
+models:
+  - name: dim_opportunity_solution_classifications
+    description: |
+      A Type 2 Slowly Changing Dimension (SCD) table. This table joins Opportunity and Solution Total historical (SCD Type 2) data and aligns the resulting records to the appropriate solution_category, solution_group, booking_category etc.
+      The table grain is one record per opportunity, per solution total, per historical version.
+      Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - opportunity_id
+            - solution_total_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    
+    columns:
+     - name: opportunity_solution_classification_key
+       description: "{{ doc('col_opportunity_solution_classification_key') }}"
+       data_type: string
+       tests:
+          - not_null
+        
+     - name: opportunity_id
+       description: "{{ doc('col_opportunity_id') }}"
+       data_type: string
+       tests:
+          - not_null
+
+     - name: solution_total_id
+       data_type: string
+       description: "{{ doc('col_solution_total_id') }}"
+      
+      # Solution Attributes
+     - name: solution_total_name
+       data_type: string
+       description: "{{ doc('col_solution_total_name') }}"
+
+     - name: solution_category
+       data_type: string
+       description: "{{ doc('col_solution_category') }}"
+
+     - name: booking_category
+       data_type: string
+       description: "{{ doc('col_booking_category') }}"
+
+     - name: budgeted_booking_category
+       description: "{{ doc('col_budgeted_booking_category') }}"
+       data_type: string
+
+     - name: solution_group
+       data_type: string
+       description: "{{ doc('col_solution_group') }}"
+
+     - name: sku_grouping
+       data_type: string
+       description: "{{ doc('col_sku_grouping') }}"
+
+     - name: solution_picklist
+       data_type: string
+       description: "{{ doc('col_solution_picklist') }}"
+
+     - name: persona
+       data_type: string
+       description: "{{ doc('col_persona') }}"
+
+     - name: reporting_classification_pipeline
+       data_type: string
+       description: The classification used for pipeline reporting, derived from several Opportunity and Deal attributes using a custom macro.
+
+     - name: reporting_classification_bookings
+       data_type: string
+       description: The classification used for bookings reporting, derived from several Opportunity and Deal attributes using a custom macro.
+
+     - name: solution_group_combination
+       data_type: string
+       description: "{{ doc('col_solution_group_combination') }}"
+
+  # Opportunity Flags/Booleans
+     - name: is_advanced_sku_grouping
+       data_type: boolean
+       description: "{{ doc('col_is_advanced_sku_grouping') }}"
+
+     - name: is_standard_sku_grouping
+       data_type: boolean
+       description: "{{ doc('col_is_standard_sku_grouping') }}"
+
+     - name: opportunity_has_advanced_sku_grouping
+       data_type: boolean
+       description: "{{ doc('col_opportunity_has_advanced_sku_grouping') }}"
+
+     - name: opportunity_has_standard_sku_grouping
+       data_type: boolean
+       description: "{{ doc('col_opportunity_has_standard_sku_grouping') }}"
+
+     - name: is_grc_other_pp_risk
+       data_type: boolean
+       description: "{{ doc('col_is_grc_other_pp_risk') }}"
+
+     - name: is_partner_delivered
+       data_type: boolean
+       description: "{{ doc('col_is_partner_delivered') }}"
+
+     - name: is_multi_category
+       data_type: boolean
+       description: "{{ doc('col_is_multi_category') }}"
+
+     - name: is_multi_solution_category
+       data_type: boolean
+       description: "{{ doc('col_is_multi_solution_category') }}"
+      
+     - name: is_multi_booking_category
+       data_type: boolean
+       description: "{{ doc('col_is_multi_booking_category') }}"
+      
+     - name: is_multi_sku_grouping
+       data_type: boolean
+       description: "{{ doc('col_is_multi_sku_grouping') }}"
+
+     - name: is_multi_solution
+       data_type: boolean
+       description: "{{ doc('col_is_multi_solution') }}"
+       
+    # SCD Metadata
+     - name: version_start_at
+       description: "{{ doc('col_version_start_at') }}"
+       data_type: timestamp
+       tests:
+           - not_null
+
+     - name: version_end_at
+       description: "{{ doc('col_version_end_at') }}"
+       data_type: timestamp
+       tests:
+          - not_null
+
+     - name: is_latest
+       description: "{{ doc('col_is_latest') }}"
+       data_type: boolean

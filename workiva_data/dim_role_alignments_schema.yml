@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: dim_role_alignments
+    description: |
+      This table provides information of sales roles. Roles are mapped by geographic hierarchy (Region, Sub-Region) 
+      and internal structure (Division, Segment, Team), according to established business criteria.
+      The table grain is one record per owner_role per historical version (effective_start_date). 
+      Use the is_latest flag for current state analysis, or join on effective_start_date/effective_end_date for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - owner_role
+            - effective_start_date
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+        
+    columns:
+      - name: owner_role
+        description: "The unique identifier for the role. This is the primary key for the table."
+
+      - name: region
+        description: "The geographical region associated with the role."
+
+      - name: sub_region
+        description: "The sub-region within the main geographical region for the role."
+
+      - name: position
+        description: "The position to which the role belongs."
+
+      - name: division
+        description: "The division to which the role belongs."
+
+      - name: segment
+        description: "The segment associated with the role."
+
+      - name: team
+        description: "The specific team the role is part of."
+
+      - name: is_specialist_role
+        description: "A boolean flag indicating whether the role is identified as a 'specialist' role. This is determined by keywords in the 'team' name or specific values in the 'segment' or 'division' fields."
+
+      - name: effective_start_date
+        description: "The date when the role alignment became active."
+
+      - name: effective_end_date
+        description: "The date when the role alignment became or will become inactive."
+      
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean

@@ -1,0 +1,16 @@
+models:
+  - name: salesforce_sbqq_subscription
+    description: A view representing subscription data from Salesforce CPQ (Configure, Price, Quote), capturing details about recurring services or products, billing terms, renewal information, and associated accounts or contracts for subscription management and reporting.
+    config:
+        alias: sbqq_subscription
+        schema: salesforce
+    meta:
+      atlan:
+        attributes:
+          ownerGroups: ["data_engineering"]
+    columns:
+      - name: subscription_id
+        description: Unique identifier for the subscription record.
+        data_tests:
+          - unique
+          - not_null

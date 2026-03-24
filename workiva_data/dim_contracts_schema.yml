@@ -1,0 +1,98 @@
+version: 2
+
+models:
+  - name: dim_contracts
+    description: |
+      A Type 2 Slowly Changing Dimension (SCD) model representing the historical state of Salesforce Contracts - joined with 
+      'sf_deletes' to track deletions. This model provides contract details, IDs, and versioning.
+      The table grain is one record per contract per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - contract_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: contract_id
+        description: "The Salesforce ID that uniquely identifies the contract (remains constant across all versions)."
+        data_type: string
+        tests:
+          - not_null
+        
+      # --- Contract Attributes ---
+      - name: contract_name
+        description: "The name of the contract."
+        data_type: string
+
+      - name: contract_workiva_status
+        description: "The current status of the contract (e.g., Active, Churning)."
+        data_type: string
+      
+      # --- Date and Time Attributes ---
+      - name: contract_start_date
+        description: "The official start date of the contract."
+        data_type: timestamp
+      
+      - name: contract_end_date
+        description: "The official end date of the contract."
+        data_type: timestamp
+
+      - name: subscription_start_date
+        description: "The start date for the subscription period."
+        data_type: timestamp
+
+      - name: subscription_end_date
+        description: "The end date for the subscription period."
+        data_type: timestamp
+
+     # --- IDs ---
+      - name: account_id
+        description: "{{ doc('col_account_id') }}"
+        data_type: string
+
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+
+      - name: end_client_id
+        description: "ID of the end client associated with the contract."
+        data_type: string
+    
+    # --- Flags ---
+      - name: is_xbrl_subscription
+        description: "Boolean flag: TRUE if the contract includes an XBRL subscription."
+        data_type: boolean
+          
+      - name: is_churned_contract
+        description: "Boolean flag: TRUE if the contract has been marked as churned."
+        data_type: boolean
+      
+      # --- Deletion Information ---
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      # --- Record Version Attributes (SCD Type 2) ---
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+          
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+          
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean
+      

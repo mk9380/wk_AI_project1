@@ -1,0 +1,146 @@
+version: 2
+
+models:
+  - name: dim_opportunity_assists
+    description: |
+      This model tracks the history of opportunity assists using SCD Type 2 logic. 
+      It includes attributes related to roles, types, solutions, and engagement stages, 
+      enriched with Salesforce delete information and record type names.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - opportunity_assist_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: opportunity_assist_id
+        description: "The primary identifier for the opportunity assist record."
+        data_type: string
+        tests:
+          - not_null
+
+      - name: opportunity_assist_name
+        description: "The name of the opportunity assist."
+        data_type: string
+
+      - name: opportunity_assist_role
+        description: "The role associated with the opportunity assist."
+        data_type: string
+
+      - name: opportunity_assist_type
+        description: "The type of opportunity assist provided."
+        data_type: string
+
+      - name: opportunity_assist_summary
+        description: "A summary description of the assist."
+        data_type: string
+
+      - name: opportunity_assist_value_stage
+        description: "The value stage (e.g., Engaged, Completed) associated with the assist."
+        data_type: string
+
+      - name: opportunity_assist_value_play
+        description: "The value play associated with the assist."
+        data_type: string
+
+      - name: opportunity_assist_demo_type
+        description: "The type of demo performed during the assist."
+        data_type: string
+
+      - name: opportunity_assist_creator_role
+        description: "The role of the user who created the assist."
+        data_type: string
+
+      - name: opportunity_assist_time_commitment_hours
+        description: "Hours committed to this opportunity assist."
+        data_type: numeric
+
+      - name: opportunity_assist_discovery_type
+        description: "The type of discovery performed."
+        data_type: string
+
+      - name: opportunity_assist_primary_solution
+        description: "The primary solution discussed."
+        data_type: string
+
+      - name: opportunity_assist_additional_solution
+        description: "Additional solutions discussed."
+        data_type: string
+
+      - name: opportunity_assist_other_solution
+        description: "Other solutions discussed."
+        data_type: string
+
+      - name: opportunity_stage_at_engagement
+        description: "The stage of the opportunity when the assist engagement began."
+        data_type: string
+
+      - name: opportunity_assist_owner_name
+        description: "The name of the user who owns the assist record."
+        data_type: string
+
+      - name: opportunity_assist_start_date
+        description: "The start date of the opportunity assist."
+        data_type: date
+
+      - name: opportunity_assist_end_date
+        description: "The end date of the opportunity assist."
+        data_type: date
+
+      - name: created_timestamp
+        description: "The timestamp when the record was created."
+        data_type: timestamp
+
+      - name: last_activity_date
+        description: "The date of the last activity on this record."
+        data_type: date
+
+      - name: account_id
+        description: "The unique identifier for the associated account."
+        data_type: string
+
+      - name: opportunity_id
+        description: "The unique identifier for the associated opportunity."
+        data_type: string
+
+      - name: opportunity_assist_owner_user_id
+        description: "The unique identifier for the owner user."
+        data_type: string
+
+      - name: opportunity_assist_created_by_user_id
+        description: "The unique identifier for the user who created the record."
+        data_type: string
+
+      - name: opportunity_assist_record_type_id
+        description: "The unique identifier for the Salesforce record type."
+        data_type: string
+
+      - name: opportunity_assist_team
+        description: "The team associated with the assist, obtained from the name of the record type."
+        data_type: string
+
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean
+          

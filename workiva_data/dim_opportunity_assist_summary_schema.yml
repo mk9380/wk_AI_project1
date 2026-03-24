@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: dim_opportunity_assist_summary
+    description: |
+      This model provides a flattened, non-overlapping SCD Type 2 history of assists at the Opportunity level. 
+      It provides a unified historical view of an Opportunity's assist activity.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - opportunity_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+
+    columns:
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        tests:
+          - not_null
+
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean
+
+      - name: has_completed_value_management_assist
+        description: "Boolean flag indicating if at least one 'Completed' Value Management assist valid for this period."
+        tests:
+          - not_null
+      
+      - name: latest_vm_assist_id
+        description: "The Salesforce ID of the most recently created 'Value Management' record valid for this period."
+
+      - name: latest_vm_assist_value_stage
+        description: "The value stage of the most recently created Value Management assist valid for this period."
+
+      - name: latest_vm_assist_owner_user_id
+        description: "The User ID of the owner assigned to the latest Value Management assist valid for this period."
+      
+      - name: latest_vm_assist_owner_user_name
+        description: "The name of the owner assigned to the latest Value Management assist valid for this period."
+
+      - name: opportunity_vm_assist_ids
+        description: "Comma-separated list of all Value Management Assist IDs valid for this period."
+
+      - name: latest_assist_id
+        description: "The Salesforce ID of the latest assist record created (of any type) valid for this period."
+
+      - name: latest_assist_value_stage
+        description: "The value stage of the latest assist record created (of any type) valid for this period."
+
+      - name: latest_assist_owner_user_id
+        description: "The User ID of the owner assigned to the latest assist record (of any type) valid for this period."
+      
+      - name: latest_assist_owner_user_name
+        description: "The name of the owner assigned to the latest assist record (of any type) valid for this period."
+
+      - name: latest_assist_team
+        description: "The Record Type Name (Team) of the latest assist record (of any type) valid for this period."
+
+      - name: all_opportunity_assist_ids
+        description: "A comma-separated list of all Assist IDs (all types) valid for this period."
+
+      - name: all_assist_teams
+        description: "A comma-separated list of all unique Team names (Record Types) involved with the opportunity valid for this period."

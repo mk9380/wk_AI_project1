@@ -1,0 +1,834 @@
+version: 2
+
+models:
+  - name: obt_pipeline
+    description: |
+      A OBT (One Big Table) that combines daily snapshot data from 'fct_pipeline' with historical attributes from various dimension tables, 
+      including opportunities, accounts, alignments, solution classifications, contacts, and users.
+      This model serves as a comprehensive, denormalized source for pipeline analysis and reporting.
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      - name: pipeline_key
+        description: "A unique surrogate key for each pipeline snapshot, generated from the snapshot date, opportunity ID, and solution total ID. This ID represents the primary key."
+        data_type: string
+        tests:
+          - unique
+          - not_null
+
+      - name: snapshot_date
+        description: "The calendar date for which the pipeline snapshot was taken."
+        data_type: date
+        tests:
+          - not_null
+
+      - name: snapshot_year_quarter
+        description: "The year and quarter corresponding to the `snapshot_date` (e.g., 'FY25 Q1')."
+        data_type: string
+
+      - name: is_current_day_snapshot
+        description: "A boolean flag indicating if the `snapshot_date` is the current calendar day."
+        data_type: boolean
+
+      - name: is_first_day_of_month_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the first day of its respective month."
+        data_type: boolean
+
+      - name: is_first_day_of_quarter_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the first day of its respective quarter."
+        data_type: boolean
+
+      - name: is_fifth_business_day_of_month_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the fifth business day of its respective month."
+        data_type: boolean
+
+      - name: is_fifth_business_day_of_quarter_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is the fifth business day of its respective quarter."
+        data_type: boolean
+
+      - name: is_one_year_ago_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is exactly one year prior to the current day."
+        data_type: boolean
+      
+      - name: is_two_years_ago_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is exactly two years prior to the current day."
+        data_type: boolean
+
+      - name: is_three_years_ago_snapshot
+        description: "A boolean flag indicating if `snapshot_date` is exactly three years prior to the current day."
+        data_type: boolean
+
+      - name: is_quarterly_snapshot
+        description: "A flag to identify key dates for quarterly pipeline reporting (fifth business day of quarter or current day, excluding future dates within the current quarter)."
+        data_type: boolean
+
+      - name: is_monthly_snapshot
+        description: "A flag to identify key dates for monthly pipeline reporting (fifth business day of month or current day, excluding future dates within the current month)."
+        data_type: boolean
+      
+      - name: is_closed_opp_snapshot_at_closed_date
+        description: "A flag indicating if this snapshot row represents the opportunity at the moment it transitioned into a closed stage. This is the primary record for 'point-in-time' closure analysis."
+        data_type: boolean
+
+      - name: is_closed_opp_snapshot_latest
+        description: "A flag indicating if this snapshot row represents a closed opportunity as it currently exist."
+        data_type: boolean
+
+      - name: currency_iso_code
+        description: "The currency ISO code (e.g., 'USD', 'EUR') associated with the solution total (for opportunities with solution total) or with the opportunity (for opportunities w/o solution total)."
+        data_type: string
+
+      - name: qualified_first_year_s_s_net_amt_usd
+        description: "The estimated First Year Subscription & Support (S&S) Net Amount, converted to USD, for opportunities in a qualified stage ('Discovery', 'Alignment', 'Validate', 'Propose', 'Negotiate and Close', 'Define Solution', etc)."
+        data_type: decimal
+
+      - name: unqualified_first_year_s_s_net_amt_usd
+        description: "The estimated First Year S&S Net Amount, converted to USD, for opportunities in an unqualified stage ('Unqualified')."
+        data_type: decimal
+
+      - name: total_first_year_s_s_net_amt_usd
+        description: "The estimated First Year S&S Net Amount, converted to USD, representing the total pipeline (qualified + unqualified stages)."
+        data_type: decimal
+
+      - name: is_opportunity_with_solution_total
+        description: "A boolean flag indicating if the pipeline amount was derived from an actual Solution Total record (TRUE) or an estimated value from the Opportunity (FALSE)."
+        data_type: boolean
+
+      - name: is_open
+        description: "A boolean flag indicating if the opportunity is in an open stage at the corresponding snapshot_date."
+        data_type: boolean
+      
+      - name: is_closed_won
+        description: "A boolean flag indicating if the opportunity is in a closed won stage at the corresponding snapshot_date."
+        data_type: boolean
+      
+      - name: is_closed_pending
+        description: "A boolean flag indicating if the opportunity is in a closed pending stage at the corresponding snapshot_date."
+        data_type: boolean
+      
+      - name: is_closed_lost
+        description: "A boolean flag indicating if the opportunity is in a closed lost stage at the corresponding snapshot_date."
+        data_type: boolean
+
+      - name: is_qualified
+        description: "A boolean flag indicating if the opportunity is in a qualified stage."
+        data_type: boolean
+      
+      - name: is_snapshot_near_closed_date
+        description: "Boolean flag (TRUE/FALSE) indicating if the opportunity's snapshot date falls within 1 year before and 2 years after its closed date."
+        data_type: boolean
+      
+      - name: is_positive_opportunity_s_s_net
+        description: "A boolean flag indicating if the total first_year_s_s_net_amt_usd amount for an opportunity (sum across all solutions) is greater than zero for the given snapshot."
+        data_type: boolean
+      
+      - name: is_quarterly_close_target_snapshot
+        description: |
+          A boolean flag used for standardized quarterly reporting. It identifies the 'official' pipeline state for opportunities closing within the same quarter as the snapshot.
+          Logic breakdown:
+          * Past Quarters: Captures the 5th business day snapshot.
+          * Current Quarter: Captures the earliest available of either the 5th business day or the current day snaphot.
+          * Future Quarters: Captures the most recent snapshot (is_current_day_snapshot).
+        data_type: boolean
+      
+      - name: is_created_on_snapshot
+        description: "Flag indicating if the snapshot date matches the opportunity creation date."
+        data_type: boolean
+
+      - name: is_qualified_on_snapshot
+        description: "Flag indicating if the snapshot date matches the opportunity qualified date."
+        data_type: boolean
+      
+      - name: is_metric_created_pipeline
+        description: "Filters for created pipeline to measure pipeline created in a certain period (Filters: is_positive_opportunity_s_s_net = True, is_created_on_snapshot = True)."
+        data_type: boolean
+      
+      - name: is_metric_open_qualified_pipeline
+        description: "Filters for the current open qualified pipeline (Filters: is_positive_opportunity_s_s_net = True, is_current_day_snapshot = True, is_open = True, is_qualified = True)."
+        data_type: boolean
+
+      - name: is_metric_open_total_pipeline
+        description: "Filters for the current open total pipeline (Filters: is_positive_opportunity_s_s_net = True, is_current_day_snapshot = True, is_open = True)."
+        data_type: boolean
+
+      - name: is_metric_start_of_quarter_open_qualified_pipeline
+        description: "Filters for the starting open qualified pipeline for the quarter for opportunities closing within the same quarter (Filters: is_positive_opportunity_s_s_net = True, is_quarterly_close_target_snapshot = True, is_open = True, is_qualified = True)."
+        data_type: boolean
+
+      - name: is_metric_start_of_quarter_open_total_pipeline
+        description: "Filters for the starting open total pipeline for the quarter for opportunities closing within the same quarter (Filters: is_positive_opportunity_s_s_net = True, is_quarterly_close_target_snapshot = True , is_open = True)."
+        data_type: boolean
+
+      - name: opportunity_id
+        description: "{{ doc('col_opportunity_id') }}"
+        data_type: string
+        tests:
+          - not_null
+
+      - name: opportunity_stage_name
+        description: "{{ doc('col_opportunity_stage_name') }}"
+        data_type: string
+
+      - name: opportunity_name
+        description: "{{ doc('col_opportunity_name') }}"
+        data_type: string
+
+      - name: opportunity_record_type_name
+        description: "{{ doc('col_opportunity_record_type_name') }}"
+        data_type: string
+
+      - name: opportunity_type
+        description: "{{ doc('col_opportunity_type') }}"
+        data_type: string
+      
+      - name: opportunity_competitor
+        description: "{{ doc('col_opportunity_competitor') }}"
+        data_type: string
+
+      - name: opportunity_owner_role
+        description: "{{ doc('col_opportunity_owner_role') }}"
+        data_type: string
+
+      - name: opportunity_closing_role
+        description: "{{ doc('col_opportunity_closing_role') }}"
+        data_type: string
+
+      - name: opportunity_lead_source
+        description: "{{ doc('col_opportunity_lead_source') }}"
+        data_type: string
+
+      - name: opportunity_deal_type
+        description: "{{ doc('col_opportunity_deal_type') }}"
+        data_type: string
+
+      - name: opportunity_forecast_category_name
+        description: "{{ doc('col_opportunity_forecast_category_name') }}"
+        data_type: string
+
+      - name: opportunity_origin_source
+        description: "{{ doc('col_opportunity_origin_source') }}"
+        data_type: string
+
+      - name: is_alignment_stage_plus
+        description: "{{ doc('col_is_alignment_stage_plus') }}"
+        data_type: boolean
+
+      - name: opportunity_service_delivery_notes
+        description: "{{ doc('col_opportunity_service_delivery_notes') }}"
+        data_type: string
+
+      - name: opportunity_reporting_sub_type
+        description: "{{ doc('col_opportunity_reporting_sub_type') }}"
+        data_type: string
+      
+      - name: is_deal_registration
+        description: "{{ doc('col_is_deal_registration') }}"
+        data_type: boolean
+
+      - name: is_managed_service
+        description: "{{ doc('col_is_managed_service') }}"
+        data_type: boolean
+      
+      - name: large_deal_category
+        data_type: string
+        description: |
+          Categorizes the opportunity based on its total consolidated first_year_s_s_net_amt_usd. 
+          This is calculated at the opportunity level, representing the aggregate value of the deal 
+          rather than individual solution totals.
+
+      - name: opportunity_created_at
+        description: "{{ doc('col_opportunity_created_at') }}"
+        data_type: timestamp
+
+      - name: opportunity_created_date
+        description: "{{ doc('col_opportunity_created_date') }}"
+        data_type: date
+
+      - name: opportunity_created_quarter_date
+        description: "{{ doc('col_opportunity_created_quarter_date') }}"
+        data_type: date
+
+      - name: opportunity_created_year_quarter
+        description: "{{ doc('col_opportunity_created_year_quarter') }}"
+        data_type: string
+
+      - name: opportunity_closed_date
+        description: "{{ doc('col_opportunity_closed_date') }}"
+        data_type: date
+
+      - name: opportunity_closed_quarter_date
+        description: "{{ doc('col_opportunity_closed_quarter_date') }}"
+        data_type: date
+
+      - name: opportunity_closed_year_quarter
+        description: "{{ doc('col_opportunity_closed_year_quarter') }}"
+        data_type: string
+
+      - name: opportunity_qualified_date
+        description: "{{ doc('col_opportunity_qualified_date') }}"
+        data_type: date
+
+      - name: opportunity_qualified_quarter_date
+        description: "{{ doc('col_opportunity_qualified_quarter_date') }}"
+        data_type: date
+
+      - name: opportunity_qualified_year_quarter
+        description: "{{ doc('col_opportunity_qualified_year_quarter') }}"
+        data_type: string
+
+      - name: opportunity_bookings_date
+        description: "{{ doc('col_opportunity_bookings_date') }}"
+        data_type: date
+
+      - name: opportunity_booking_or_closed_date
+        description: "{{ doc('col_opportunity_booking_or_closed_date') }}"
+        data_type: date
+
+      - name: opportunity_created_by_user_id
+        description: "{{ doc('col_opportunity_created_by_user_id') }}"
+        data_type: string
+
+      - name: opportunity_creator_name
+        description: "The name of the Salesforce User who created the Opportunity."
+        data_type: string
+
+      - name: opportunity_creator_username
+        description: "The username of the Salesforce User who created the Opportunity."
+        data_type: string
+
+      - name: opportunity_owner_user_id
+        description: "{{ doc('col_opportunity_owner_user_id') }}"
+        data_type: string
+
+      - name: opportunity_owner_name
+        description: "The name of the Salesforce User owning the Opportunity."
+        data_type: string
+
+      - name: opportunity_owner_username
+        description: "The username of the Salesforce User owning the Opportunity."
+        data_type: string
+
+      - name: opportunity_owner_manager_name
+        description: "The name of the manager of the Salesforce User who owns the Opportunity."
+        data_type: string
+
+      - name: opportunity_owner_manager_username
+        description: "The username of the manager of the Salesforce User who owns the Opportunity."
+        data_type: string
+
+      - name: opportunity_creator_source
+        description: "The source associated with the opoprtunity creation."
+        data_type: string
+
+      - name: opportunity_market_segment
+        description: "{{ doc('col_opportunity_market_segment') }}"
+        data_type: string
+
+      - name: opportunity_team
+        description: "{{ doc('col_opportunity_team') }}"
+        data_type: string
+
+      - name: opportunity_owner_region
+        description: "{{ doc('col_opportunity_owner_region') }}"
+        data_type: string
+
+      - name: opportunity_owner_sub_region
+        description: "{{ doc('col_opportunity_owner_sub_region') }}"
+        data_type: string
+
+      - name: public_type
+        description: "{{ doc('col_public_type') }}"
+        data_type: string
+
+      - name: is_public_type
+        description: "{{ doc('col_is_public_type') }}"
+        data_type: boolean
+      
+      - name: opportunity_alignment_region
+        description: "{{ doc('col_opportunity_alignment_region') }}"
+        data_type: string
+
+      - name: opportunity_alignment_category
+        description: "{{ doc('col_opportunity_alignment_category') }}"
+        data_type: string
+
+      - name: opportunity_alignment_sub_category
+        description: "{{ doc('col_opportunity_alignment_sub_category') }}"
+        data_type: string 
+
+      - name: has_completed_value_management_assist
+        description: "{{ doc('col_has_completed_value_management_assist_snapshot') }}"
+        data_type: boolean
+        
+      - name: solution_total_id
+        description: "Unique identifier for the Solution Total record. For estimated pipeline (without a Solution Total), this is a synthetic ID (`NST_[Opportunity_ID]_[Counter]`)."
+        data_type: string
+        tests:
+          - not_null
+
+      - name: opportunity_solution_classification_key
+        description: "{{ doc('col_opportunity_solution_classification_key') }}"
+        data_type: string
+
+      - name: solution_total_name
+        description: "{{ doc('col_solution_total_name') }}"
+        data_type: string
+
+      - name: solution_category
+        description: "{{ doc('col_solution_category') }}"
+        data_type: string
+
+      - name: booking_category
+        description: "{{ doc('col_booking_category') }}"
+        data_type: string
+      
+      - name: budgeted_booking_category
+        description: "{{ doc('col_budgeted_booking_category') }}"
+        data_type: string
+
+      - name: solution_group
+        description: "{{ doc('col_solution_group') }}"
+        data_type: string
+
+      - name: sku_grouping
+        description: "{{ doc('col_sku_grouping') }}"
+        data_type: string
+
+      - name: solution_picklist
+        description: "{{ doc('col_solution_picklist') }}"
+        data_type: string
+
+      - name: reporting_classification
+        description: "The classification used for pipeline reporting, derived from several opportunity and deal attributes."
+        data_type: string
+
+      - name: persona
+        description: "{{ doc('col_persona') }}"
+        data_type: string
+
+      - name: is_multi_category
+        data_type: boolean
+        description: "{{ doc('col_is_multi_category') }}"
+
+      - name: is_multi_solution_category
+        data_type: boolean
+        description: "{{ doc('col_is_multi_solution_category') }}"
+      
+      - name: is_multi_booking_category
+        data_type: boolean
+        description: "{{ doc('col_is_multi_booking_category') }}"
+      
+      - name: is_multi_sku_grouping
+        data_type: boolean
+        description: "{{ doc('col_is_multi_sku_grouping') }}"
+
+      - name: is_multi_solution
+        data_type: boolean
+        description: "{{ doc('col_is_multi_solution') }}"
+
+      - name: is_advanced_sku_grouping
+        data_type: boolean
+        description: "{{ doc('col_is_advanced_sku_grouping') }}"
+
+      - name: is_standard_sku_grouping
+        data_type: boolean
+        description: "{{ doc('col_is_standard_sku_grouping') }}"
+
+      - name: opportunity_has_advanced_sku_grouping
+        data_type: boolean
+        description: "{{ doc('col_opportunity_has_advanced_sku_grouping') }}"
+
+      - name: opportunity_has_standard_sku_grouping
+        data_type: boolean
+        description: "{{ doc('col_opportunity_has_standard_sku_grouping') }}"
+
+      - name: first_associated_contact_id
+        description: "The contact ID of the first associated contact on the Opportunity."
+        data_type: string
+
+      - name: first_associated_contact_lead_source
+        description: "The lead source corresponding to the first associated contact on the opportunity."
+        data_type: string
+        
+      - name: first_associated_contact_lead_source_condensed
+        description: "The aggregated version of lead source corresponding to the first associated contact on the opportunity."
+        data_type: string
+        
+      - name: customer_account_id
+        description: "{{ doc('col_customer_account_id') }}"
+        data_type: string
+
+      - name: account_name
+        description: "The name of the account."
+        data_type: string
+
+      - name: account_region
+        description: "The geographic region of the account."
+        data_type: string
+
+      - name: account_segment
+        description: "The business segment of the account."
+        data_type: string
+
+      - name: account_corporate_country
+        description: "The primary country of the account's corporation."
+        data_type: string
+
+      - name: account_corporate_country_region
+        description: "Region derived from account corporate country using the standard country-to-region mapping (APAC, EMEA, LATAM, North America). Returns 'Other' when the country is not in the mapping."
+        data_type: string
+      
+      - name: account_sales_territory
+        description: "The sales territory associated with the account."
+        data_type: string
+
+      - name: account_type
+        description: "The type of account (e.g., Customer, Prospect)."
+        data_type: string
+
+      - name: account_workiva_internal_industry
+        description: "The internal Workiva industry classification."
+        data_type: string
+
+      - name: is_financial_industry
+        description: "Boolean flag indicating if the account is in the financial industry."
+        data_type: boolean
+
+      - name: is_energy_industry
+        description: "Boolean flag indicating if the account is in the energy industry."
+        data_type: boolean
+
+      - name: financial_industry_type
+        description: "A derived field classifying the type of financial industry."
+        data_type: string
+
+      - name: energy_industry_type
+        description: "A derived field classifying the type of energy industry."
+        data_type: string
+
+      - name: is_on_the_path
+        description: "A custom flag (e.g., related to a specific sales/onboarding path)."
+        data_type: boolean
+      
+      - name: account_annual_revenue
+        description: "The annual revenue of the account."
+        data_type: numeric
+      
+      - name: account_annual_revenue_usd
+        description: "The annual revenue of the account in USD."
+        data_type: numeric
+      
+      - name: account_annual_revenue_band
+        description: "The categorical banding of an account based on its annual revenue in USD."
+        data_type: string
+      
+      - name: parent_account_id
+        description: "The ID of the parent account."
+        data_type: string
+      
+      - name: ultimate_parent_account_id
+        description: "The ID of the ultimate parent account."
+        data_type: string
+
+      - name: ultimate_parent_account_id_18_digit
+        description: "The 18-digit ID of the top-level ultimate parent account."
+        data_type: string
+
+      - name: ultimate_parent_account_name
+        description: "The name of the ultimate parent account."
+        data_type: string
+
+      - name: ultimate_parent_annual_revenue
+        description: "The annual revenue of the ultimate parent account."
+        data_type: numeric 
+
+      - name: ultimate_parent_account_type
+        description: "The account type of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_corporate_country
+        description: "The corporate country of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_region
+        description: "The region of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_csrd
+        description: "The CSRD classification of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_segment
+        description: "The business segment of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_account_owner_role
+        description: "The account owner role of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_wk_company_type
+        description: "The Workiva company type of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_customer_flag
+        description: "Flag indicating if the ultimate parent account is a customer."
+        data_type: boolean
+
+      - name: ultimate_parent_industry_group
+        description: "The industry group of the ultimate parent."
+        data_type: string
+      
+      - name: partner_1_account_id
+        description: "Account ID of the first partner."
+        data_type: string
+
+      - name: partner_1_account_name
+        description: "The account name of the first partner."
+        data_type: string
+
+      - name: partner_1_relationship
+        description: "The relationship the first partner has with the opportunity."
+        data_type: string
+
+      - name: partner_1_type
+        description: "The type of the first partner."
+        data_type: string
+
+      - name: partner_1_account_region
+        description: "The account region of the first partner."
+        data_type: string
+
+      - name: partner_1_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the first partner's account."
+        data_type: string
+
+      - name: partner_1_geographic_tag
+        description: "The partner geographic tag of the first partner's account."
+        data_type: string 
+
+      - name: partner_2_account_id
+        description: "Account ID of the second partner."
+        data_type: string
+
+      - name: partner_2_account_name
+        description: "The account name of the second partner."
+        data_type: string
+
+      - name: partner_2_relationship
+        description: "The relationship the second partner has with the opportunity."
+        data_type: string
+
+      - name: partner_2_type
+        description: "The type of the second partner."
+        data_type: string
+
+      - name: partner_2_account_region
+        description: "The account region of the second partner."
+        data_type: string
+
+      - name: partner_2_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the second partner's account."
+        data_type: string
+
+      - name: partner_2_geographic_tag
+        description: "The partner geographic tag of the second partner's account."
+        data_type: string
+      
+      - name: partner_3_account_id
+        description: "Account ID of the third partner."
+        data_type: string
+
+      - name: partner_3_account_name
+        description: "The account name of the third partner."
+        data_type: string
+
+      - name: partner_3_relationship
+        description: "The relationship the third partner has with the opportunity."
+        data_type: string
+
+      - name: partner_3_type
+        description: "The type of the third partner."
+        data_type: string
+
+      - name: partner_3_account_region
+        description: "The account region of the third partner."
+        data_type: string
+
+      - name: partner_3_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the third partner's account."
+        data_type: string
+
+      - name: partner_3_geographic_tag
+        description: "The partner geographic tag of the third partner's account."
+        data_type: string
+
+      - name: partner_4_account_id
+        description: "Account ID of the fourth partner."
+        data_type: string
+
+      - name: partner_4_account_name
+        description: "The account name of the fourth partner."
+        data_type: string
+
+      - name: partner_4_relationship
+        description: "The relationship the fourth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_4_type
+        description: "The type of the fourth partner."
+        data_type: string
+
+      - name: partner_4_account_region
+        description: "The account region of the fourth partner."
+        data_type: string
+
+      - name: partner_4_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the fourth partner's account."
+        data_type: string
+
+      - name: partner_4_geographic_tag
+        description: "The partner geographic tag of the fourth partner's account."
+        data_type: string
+      
+      - name: partner_5_account_id
+        description: "Account ID of the fifth partner."
+        data_type: string
+
+      - name: partner_5_account_name
+        description: "The account name of the fifth partner."
+        data_type: string
+
+      - name: partner_5_relationship
+        description: "The relationship the fifth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_5_type
+        description: "The type of the fifth partner."
+        data_type: string
+
+      - name: partner_5_account_region
+        description: "The account region of the fifth partner."
+        data_type: string
+
+      - name: partner_5_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the fifth partner's account."
+        data_type: string
+
+      - name: partner_5_geographic_tag
+        description: "The partner geographic tag of the fifth partner's account."
+        data_type: string
+      
+      - name: partner_6_account_id
+        description: "Account ID of the sixth partner."
+        data_type: string
+
+      - name: partner_6_account_name
+        description: "The account name of the sixth partner."
+        data_type: string
+
+      - name: partner_6_relationship
+        description: "The relationship the sixth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_6_type
+        description: "The type of the sixth partner."
+        data_type: string
+
+      - name: partner_6_account_region
+        description: "The account region of the sixth partner."
+        data_type: string
+
+      - name: partner_6_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the sixth partner's account."
+        data_type: string
+
+      - name: partner_6_geographic_tag
+        description: "The partner geographic tag of the sixth partner's account."
+        data_type: string
+
+      - name: partner_7_account_id
+        description: "Account ID of the seventh partner."
+        data_type: string
+
+      - name: partner_7_account_name
+        description: "The account name of the seventh partner."
+        data_type: string
+
+      - name: partner_7_relationship
+        description: "The relationship the seventh partner has with the opportunity."
+        data_type: string
+
+      - name: partner_7_type
+        description: "The type of the seventh partner."
+        data_type: string
+
+      - name: partner_7_account_region
+        description: "The account region of the seventh partner."
+        data_type: string
+
+      - name: partner_7_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the seventh partner's account."
+        data_type: string
+
+      - name: partner_7_geographic_tag
+        description: "The partner geographic tag of the seventh partner's account."
+        data_type: string
+
+      - name: partner_8_account_id
+        description: "Account ID of the eighth partner."
+        data_type: string
+
+      - name: partner_8_account_name
+        description: "The account name of the eighth partner."
+        data_type: string
+
+      - name: partner_8_relationship
+        description: "The relationship the eighth partner has with the opportunity."
+        data_type: string
+
+      - name: partner_8_type
+        description: "The type of the eighth partner."
+        data_type: string
+
+      - name: partner_8_account_region
+        description: "The account region of the eighth partner."
+        data_type: string
+
+      - name: partner_8_ultimate_parent_account_id
+        description: "The ultimate parent account ID of the eighth partner's account."
+        data_type: string
+
+      - name: partner_8_geographic_tag
+        description: "The partner geographic tag of the eighth partner's account."
+        data_type: string
+  
+      - name: partner_delivering_services
+        description: ""
+        data_type: string
+
+      - name: partnership_notes
+        description: "Notes related to the partnership for the opportunity."
+        data_type: string
+
+      - name: opportunity_partner_delivery_type
+        description: "{{ doc('col_opportunity_partner_delivery_type') }}"
+        data_type: string
+
+      - name: opportunity_products
+        description: "{{ doc('col_opportunity_products') }}"
+        data_type: string
+
+      - name: opportunity_subscription_products
+        description: "{{ doc('col_opportunity_subscription_products') }}"
+        data_type: string
+
+      - name: opportunity_capital_markets_products
+        description: "{{ doc('col_opportunity_capital_markets_products') }}"
+        data_type: string
+
+      - name: is_partner_related
+        description: "Boolean flag indicating if the opportunity is related to any partner (derived from the existence of `partner_1_account_id`)."
+        data_type: boolean
+        

@@ -1,0 +1,303 @@
+version: 2
+
+models:
+  - name: dim_accounts
+    description: |
+      A Type 2 Slowly Changing Dimension (SCD) model representing the historical state of Salesforce Accounts - including ultimate parent and owner information.
+      The table grain is one record per account per historical version. Use the is_latest flag for current state analysis, or join on version_start_at/version_end_at for historical reporting.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_id
+            - version_start_at
+    config:
+      persist_docs:
+        relation: true
+        columns: true
+    columns:
+      # --- Account ID and Keys ---
+      - name: account_id
+        description: "{{ doc('col_account_id') }}"
+        data_type: string
+        tests:
+          - not_null    
+
+      - name: account_owner_user_id 
+        description: "The ID of the primary account owner user."
+        data_type: string
+        
+      - name: account_csm_user_id
+        description: "The ID of the Customer Success Manager (CSM) user."
+        data_type: string
+      
+      - name: parent_account_id
+        description: "The ID of the parent account."
+        data_type: string
+        
+      - name: ultimate_parent_account_id
+        description: "The ID of the ultimate parent account."
+        data_type: string
+        
+      - name: renewal_owner_user_id
+        description: "The ID of the renewal owner user."
+        data_type: string
+        
+      - name: intacct_id
+        description: "The Intacct (ERP) ID associated with the account."
+        data_type: string
+        
+      - name: account_record_type_id
+        description: "The ID of the Salesforce record type."
+        data_type: string
+
+      # --- Account Attributes ---
+      - name: account_name
+        description: "The name of the account."
+        data_type: string
+
+      - name: account_owner_role
+        description: "The role of the primary account owner."
+        data_type: string
+
+      - name: account_region
+        description: "The geographic region of the account."
+        data_type: string
+
+      - name: account_csrd
+        description: "The CSRD (Corporate Sustainability Reporting Directive) classification."
+        data_type: string
+
+      - name: account_segment
+        description: "The business segment of the account."
+        data_type: string
+
+      - name: account_corporate_country
+        description: "The primary country of the account's corporation."
+        data_type: string
+
+      - name: account_corporate_country_region
+        description: "Region derived from account corporate country using the standard country-to-region mapping (APAC, EMEA, LATAM, North America). Returns 'Other' when the country is not in the mapping."
+        data_type: string
+
+      - name: account_sales_territory
+        description: "The sales territory associated with the account."
+        data_type: string
+
+      - name: account_type
+        description: "The type of account (e.g., Customer, Prospect)."
+        data_type: string
+
+      - name: account_industry_sector
+        description: "The industry sector of the account."
+        data_type: string
+
+      - name: account_industry_group
+        description: "The industry group of the account."
+        data_type: string
+
+      - name: account_workiva_internal_industry
+        description: "The internal Workiva industry classification."
+        data_type: string
+
+      - name: account_hierarchy_sales_status
+        description: "The sales status within the account's hierarchy."
+        data_type: string
+
+      - name: account_wk_company_type
+        description: "The internal Workiva company type."
+        data_type: string
+
+      - name: account_workiva_entity
+        description: "The internal Workiva entity."
+        data_type: string
+
+      - name: financial_industry_type
+        description: "A derived field classifying the type of financial industry (based on wk_internal_industry macro)."
+        data_type: string
+
+      - name: energy_industry_type
+        description: "A derived field classifying the type of energy industry (based on wk_internal_industry macro)."
+        data_type: string
+
+      - name: account_annual_revenue
+        description: "The annual revenue of the account."
+        data_type: numeric
+      
+      - name: account_annual_revenue_usd
+        description: "The annual revenue of the account in USD."
+        data_type: numeric
+      
+      - name: account_annual_revenue_band
+        description: "The categorical banding of an account based on its annual revenue in USD."
+        data_type: string
+
+      - name: account_churn_reason
+        description: "The reason why the account has churned."
+        data_type: string
+
+      # --- Deletion Information ---
+      - name: is_deleted
+        description: "{{ doc('col_is_deleted') }}"
+        data_type: boolean
+
+      - name: deleted_at
+        description: "{{ doc('col_deleted_at') }}"
+        data_type: timestamp
+
+      # --- Date and Time Attributes ---
+      - name: account_created_at
+        description: "The timestamp when the account record was created."
+        data_type: timestamp
+
+      - name: account_churned_effective_at
+        description: "The effective date of account churn."
+        data_type: timestamp
+
+      # --- Flags ---
+      - name: is_account_churned
+        description: "Boolean flag indicating if the account has churned."
+        data_type: boolean
+
+      - name: is_account_churn_notice_received
+        description: "Boolean flag indicating if a churn notice has been received."
+        data_type: boolean
+
+      - name: is_partner
+        description: "Boolean flag indicating if the account is a partner."
+        data_type: boolean
+
+      - name: is_customer
+        description: "Boolean flag indicating if the account is a customer."
+        data_type: boolean
+
+      - name: is_on_the_path
+        description: "A custom flag (e.g., related to a specific sales/onboarding path)."
+        data_type: boolean
+
+      - name: is_financial_industry
+        description: "Boolean flag (derived from macro) indicating if the account is in the financial industry."
+        data_type: boolean
+
+      - name: is_test_or_internal_account
+        description: "Boolean flag (derived from macro) indicating if the account is a test or internal record."
+        data_type: boolean
+
+      - name: is_energy_industry
+        description: "Boolean flag (derived from macro) indicating if the account is in the energy industry."
+        data_type: boolean
+
+      # --- Ultimate Parent Attributes ---
+      - name: ultimate_parent_account_id_18_digit
+        description: "The 18-digit ID of the top-level ultimate parent account."
+        data_type: string
+
+      - name: ultimate_parent_account_name
+        description: "The name of the ultimate parent account."
+        data_type: string
+
+      - name: ultimate_parent_annual_revenue
+        description: "The annual revenue of the ultimate parent account."
+        data_type: numeric 
+
+      - name: ultimate_parent_owner_name
+        description: "The name of the ultimate parent account's owner."
+        data_type: string
+
+      - name: ultimate_parent_account_type
+        description: "The account type of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_corporate_country
+        description: "The corporate country of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_region
+        description: "The region of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_csrd
+        description: "The CSRD classification of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_segment
+        description: "The business segment of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_account_owner_role
+        description: "The account owner role of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_wk_company_type
+        description: "The Workiva company type of the ultimate parent."
+        data_type: string
+
+      - name: ultimate_parent_customer_flag
+        description: "Flag indicating if the ultimate parent account is a customer."
+        data_type: boolean
+
+      - name: ultimate_parent_industry_group
+        description: "The industry group of the ultimate parent."
+        data_type: string
+
+      # --- Overlay Owner Attributes ---
+      - name: account_inside_sales_owner_name
+        description: "The name of the Inside Sales owner."
+        data_type: string
+
+      - name: account_sec_owner_name
+        description: "The name of the SEC owner."
+        data_type: string
+
+      - name: account_capital_markets_owner_name
+        description: "The name of the Capital Markets owner."
+        data_type: string
+
+      - name: account_integrated_risk_owner_name
+        description: "The name of the Integrated Risk owner."
+        data_type: string
+
+      - name: account_renewal_owner_name
+        description: "The name of the Renewal owner."
+        data_type: string
+
+      - name: account_owner_name
+        description: "The name of the account's primary owner."
+        data_type: string
+
+      - name: account_partner_owner_name
+        description: "The name of the Partner owner."
+        data_type: string
+
+      - name: account_global_stat_owner_name
+        description: "The name of the Global Statutory owner."
+        data_type: string
+
+      - name: account_financial_services_owner_name
+        description: "The name of the Financial Services owner."
+        data_type: string
+
+      - name: account_esg_mgmt_reporting_owner_name
+        description: "The name of the ESG Mgmt Reporting owner."
+        data_type: string
+
+      # --- Record Type ---
+      - name: account_record_type_name
+        description: "The human-readable name of the Salesforce record type."
+        data_type: string
+
+      # --- Versioning and SCD Attributes ---
+      - name: version_start_at
+        description: "{{ doc('col_version_start_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: version_end_at
+        description: "{{ doc('col_version_end_at') }}"
+        data_type: timestamp
+        tests:
+          - not_null
+
+      - name: is_latest
+        description: "{{ doc('col_is_latest') }}"
+        data_type: boolean
