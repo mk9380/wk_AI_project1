@@ -5,79 +5,83 @@
 --           multi-path joins, and AI/Cortex Agent optimization
 -- =============================================================================
 
-CREATE OR REPLACE SEMANTIC VIEW {{DATABASE}}.{{SCHEMA}}.SV_GTM_PIPELINE
+-- Set these variables before executing
+SET DATABASE = 'PROD_DB';
+SET SCHEMA = 'ANALYTICS';
+
+CREATE OR REPLACE SEMANTIC VIEW $DATABASE.$SCHEMA.SV_GTM_PIPELINE
 
   -- =========================================================================
   -- TABLES
   -- =========================================================================
   TABLES (
     -- Fact: Daily pipeline snapshots (one row per snapshot_date + opportunity + solution_total)
-    pipeline AS {{DATABASE}}.{{SCHEMA}}.FCT_PIPELINE
+    pipeline AS $DATABASE.$SCHEMA.FCT_PIPELINE
       PRIMARY KEY (pipeline_key)
       COMMENT = 'Daily pipeline snapshot fact table. Each row represents one opportunity-solution combination on a specific snapshot date. Grain: snapshot_date + opportunity_id + solution_total_id.',
 
     -- Dimension: Opportunities (SCD Type 2)
-    opportunities AS {{DATABASE}}.{{SCHEMA}}.DIM_OPPORTUNITIES
+    opportunities AS $DATABASE.$SCHEMA.DIM_OPPORTUNITIES
       PRIMARY KEY (opportunity_id)
       CONSTRAINT opp_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 opportunity dimension. Tracks historical changes to opportunity attributes like stage, type, owner, and dates.',
 
     -- Dimension: Accounts (SCD Type 2)
-    accounts AS {{DATABASE}}.{{SCHEMA}}.DIM_ACCOUNTS
+    accounts AS $DATABASE.$SCHEMA.DIM_ACCOUNTS
       PRIMARY KEY (account_id)
       CONSTRAINT acct_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 account dimension. Tracks historical changes to account attributes like region, segment, type, and industry.',
 
     -- Dimension: Users - Opportunity Owner (SCD Type 2)
-    opp_owner AS {{DATABASE}}.{{SCHEMA}}.DIM_USERS
+    opp_owner AS $DATABASE.$SCHEMA.DIM_USERS
       PRIMARY KEY (user_id)
       CONSTRAINT owner_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 user dimension aliased for the opportunity owner. Provides owner name, role, department, division, and manager.',
 
     -- Dimension: Users - Opportunity Creator (SCD Type 2)
-    opp_creator AS {{DATABASE}}.{{SCHEMA}}.DIM_USERS
+    opp_creator AS $DATABASE.$SCHEMA.DIM_USERS
       PRIMARY KEY (user_id)
       CONSTRAINT creator_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 user dimension aliased for the opportunity creator.',
 
     -- Dimension: Users - Owner Manager (SCD Type 2)
-    owner_manager AS {{DATABASE}}.{{SCHEMA}}.DIM_USERS
+    owner_manager AS $DATABASE.$SCHEMA.DIM_USERS
       PRIMARY KEY (user_id)
       CONSTRAINT mgr_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 user dimension aliased for the opportunity owner manager.',
 
     -- Dimension: Opportunity Alignments (SCD Type 2)
-    alignments AS {{DATABASE}}.{{SCHEMA}}.DIM_OPPORTUNITY_ALIGNMENTS
+    alignments AS $DATABASE.$SCHEMA.DIM_OPPORTUNITY_ALIGNMENTS
       PRIMARY KEY (opportunity_id)
       CONSTRAINT align_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 alignment dimension. Tracks market segment, team, region, and sub-region assignments for opportunities.',
 
     -- Dimension: Solution Classifications (SCD Type 2)
-    solution_classifications AS {{DATABASE}}.{{SCHEMA}}.DIM_OPPORTUNITY_SOLUTION_CLASSIFICATIONS
+    solution_classifications AS $DATABASE.$SCHEMA.DIM_OPPORTUNITY_SOLUTION_CLASSIFICATIONS
       PRIMARY KEY (opportunity_solution_classification_key)
       CONSTRAINT solclass_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 solution classification dimension. Tracks solution category, booking category, SKU grouping, persona, and reporting classification.',
 
     -- Dimension: Contacts (SCD Type 2)
-    contacts AS {{DATABASE}}.{{SCHEMA}}.DIM_CONTACTS
+    contacts AS $DATABASE.$SCHEMA.DIM_CONTACTS
       PRIMARY KEY (contact_id)
       CONSTRAINT contact_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 contact dimension. Tracks contact name, title, lead source, and account association.',
 
     -- Dimension: Opportunity Partners (SCD Type 2)
-    partners AS {{DATABASE}}.{{SCHEMA}}.DIM_OPPORTUNITY_PARTNERS
+    partners AS $DATABASE.$SCHEMA.DIM_OPPORTUNITY_PARTNERS
       PRIMARY KEY (opportunity_id)
       CONSTRAINT partner_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 partner dimension. Tracks up to 8 partners per opportunity with relationship type, region, and status.',
 
     -- Dimension: Opportunity Line Item Summary (SCD Type 2)
-    line_items AS {{DATABASE}}.{{SCHEMA}}.DIM_OPPORTUNITY_LINE_ITEM_SUMMARY
+    line_items AS $DATABASE.$SCHEMA.DIM_OPPORTUNITY_LINE_ITEM_SUMMARY
       PRIMARY KEY (opportunity_id)
       CONSTRAINT li_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 line item summary. Provides aggregated product names and subscription product lists per opportunity.',
 
     -- Dimension: Opportunity Assist Summary (SCD Type 2)
-    assists AS {{DATABASE}}.{{SCHEMA}}.DIM_OPPORTUNITY_ASSIST_SUMMARY
+    assists AS $DATABASE.$SCHEMA.DIM_OPPORTUNITY_ASSIST_SUMMARY
       PRIMARY KEY (opportunity_id)
       CONSTRAINT assist_range DISTINCT RANGE BETWEEN version_start_at AND version_end_at EXCLUSIVE
       COMMENT = 'SCD Type 2 assist summary. Tracks value management and assist engagement details per opportunity.'
